@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import spotipy
 
 movie_date = input("What time do you want to travel to? Type the date in YYYY-MM-DD format here:\n")
 
@@ -10,11 +11,11 @@ song_title_list = []
 
 response = requests.get(f"{WEBSITE_ACCESS_LINK}{movie_date}")
 bs4_data = BeautifulSoup(response.content, "html.parser", from_encoding="utf-8")
-song_data = bs4_data.find_all(name="h3", id="title-of-a-story")
+song_data = bs4_data.select("li ul li h3")
 
 
 for song_item in song_data:
-    song_title = song_item.getText()
+    song_title = song_item.getText().strip()
     song_title_list.append(song_title)
 
 print(song_title_list)
