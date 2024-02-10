@@ -21,13 +21,7 @@ response = requests.get(f"{WEBSITE_ACCESS_LINK}{movie_date}")
 bs4_data = BeautifulSoup(response.content, "html.parser", from_encoding="utf-8")
 song_data = bs4_data.select("li ul li h3")
 
-
-# song_data = bs4_data.select("li ul li .c-label")
-#
-#
-# pprint(song_data)
-
-def find_track():
+def find_track_uris():
     for song_item in song_data:
         song_title = song_item.getText().strip()
         song_title_list.append(song_title)
@@ -36,13 +30,24 @@ def find_track():
             auth_manager=SpotifyOAuth(scope=scope, client_id=CLIENTID, client_secret=CLIENTSECRET,
                                       redirect_uri=REDIRECTURI, username=CLIENTUSERNAME))
         spotify_data = spotifyinit.search(q=spotify_query, limit=1, offset=0, type='track', market=None)
-        spotify_song_uri = spotify_data["tracks"]["items"][0]["uri"]
-        song_uri_list.append(spotify_song_uri)
+        try:
+            spotify_song_uri = spotify_data["tracks"]["items"][0]["uri"]
+        except KeyError:
+            pass
+        else:
+            song_uri_list.append(spotify_song_uri)
 
 
+def initialize_playlist():
+    find_track_uris()
+    spotifyinit = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope, client_id=CLIENTID, client_secret=CLIENTSECRET,
+                                  redirect_uri=REDIRECTURI, username=CLIENTUSERNAME))
+    user_id = spotifyinit.current_user()["id"]
+    playlist_output_id = spotifyinit.user_playlist_create(user_id, name=f"{movie_date} Billboard 100", public=False,
+                                                          description=f"Billboard Top 100 playlist from {movie_date}!")["id"]
+    spotifyinit.playlist_add_items(playlist_id=playlist_output_id, items=song_uri_list)
+    print("Playlist made! Check your Spotify account to 'go back in time!'")
 
-find_track()
-print(song_uri_list)
 
-# current_user_info = spotifyinit.current_user()
-# user_id = spotifyinit.current_user()["id"]
+initialize_playlist()
+
