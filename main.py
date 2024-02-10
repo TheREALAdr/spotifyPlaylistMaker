@@ -3,7 +3,6 @@ import os
 import requests
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from pprint import pprint
 
 CLIENTID = os.environ.get("CLIENTID")
 CLIENTSECRET = os.environ.get("CLIENTSECRET")
@@ -17,9 +16,11 @@ movie_date = input("What time do you want to travel to? Type the date in YYYY-MM
 song_title_list = []
 song_uri_list = []
 # Pulling from Billboard website! Take data only when necessary!
+
 response = requests.get(f"{WEBSITE_ACCESS_LINK}{movie_date}")
 bs4_data = BeautifulSoup(response.content, "html.parser", from_encoding="utf-8")
 song_data = bs4_data.select("li ul li h3")
+
 
 def find_track_uris():
     for song_item in song_data:
@@ -41,13 +42,13 @@ def find_track_uris():
 def initialize_playlist():
     find_track_uris()
     spotifyinit = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope, client_id=CLIENTID, client_secret=CLIENTSECRET,
-                                  redirect_uri=REDIRECTURI, username=CLIENTUSERNAME))
+                                                            redirect_uri=REDIRECTURI, username=CLIENTUSERNAME))
     user_id = spotifyinit.current_user()["id"]
     playlist_output_id = spotifyinit.user_playlist_create(user_id, name=f"{movie_date} Billboard 100", public=False,
-                                                          description=f"Billboard Top 100 playlist from {movie_date}!")["id"]
+                                                          description=f"Billboard Top 100 playlist from {movie_date}!")[
+        "id"]
     spotifyinit.playlist_add_items(playlist_id=playlist_output_id, items=song_uri_list)
     print("Playlist made! Check your Spotify account to 'go back in time!'")
 
 
 initialize_playlist()
-
